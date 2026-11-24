@@ -1,0 +1,3493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sander Bosmans - Videographer & Film Editor</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --page-bg: #ece6dd;
+            --text-red: #e31b23;
+        }
+
+        html,
+        body {
+            background-color: var(--page-bg);
+            color: var(--text-red);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* body must not be a scroll container, otherwise the sticky header can't stick */
+        body {
+            overflow-x: clip;
+            overflow-y: visible;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        header,
+        .brand-name,
+        .nav-links a,
+        .mobile-contact-menu,
+        .mobile-contact-menu a,
+        .scroll-hint {
+            position: relative;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        body.video-modal-open header {
+            z-index: 2500;
+        }
+
+        body.video-modal-open .video-modal-player {
+            z-index: 0;
+        }
+
+        /* Intro load animation: top text first, then videos */
+        body.intro-loading header,
+        body.intro-loading .work-heading {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        body.intro-loading .videos-grid {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        body.intro-loading.intro-top-ready header,
+        body.intro-loading.intro-top-ready .work-heading {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 320ms ease, transform 320ms ease;
+        }
+
+        body.intro-loading.intro-videos-ready .videos-grid {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 320ms ease, transform 320ms ease;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.intro-loading header,
+            body.intro-loading .work-heading,
+            body.intro-loading .videos-grid {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: baseline;
+            padding: 17px 30px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: transparent;
+            z-index: 2000;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            left: 0;
+            color: var(--text-red);
+            transition: color 0.2s ease, opacity 0.5s ease;
+        }
+
+        body.video-open header {
+            color: #ffffff;
+            position: fixed;
+            z-index: 3000;
+        }
+
+        body.video-modal-open header,
+        body.video-modal-open .brand-name,
+        body.video-modal-open .brand-subtitle,
+        body.video-modal-open .brand-dot,
+        body.video-modal-open .nav-links a,
+        body.video-modal-open .scroll-hint {
+            color: #ffffff;
+            mix-blend-mode: difference;
+            isolation: isolate;
+            z-index: 3000;
+            pointer-events: auto;
+        }
+
+        /* Main page: once scrolled, the red header crossfades into a blended copy
+           (mix-blend-mode itself can't be animated, so two layers fade into each other).
+           The real header stays on top for clicks, it just becomes invisible. */
+        .header-blend {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1999;
+            color: #ffffff;
+            mix-blend-mode: difference;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .header-blend,
+        .header-blend * {
+            pointer-events: none !important;
+        }
+
+        .header-blend .nav-links a::after {
+            background-color: #ffffff;
+        }
+
+        .header-blend .nav-links a.is-hover::after {
+            transform: scaleX(1);
+        }
+
+        body.header-scrolled:not(.video-modal-open) .header-blend {
+            opacity: 1;
+        }
+
+        /* Stronger than the intro-animation rules, so the copy never shows at the top */
+        html body:not(.header-scrolled) header.header-blend {
+            opacity: 0;
+        }
+
+        body.header-scrolled:not(.video-modal-open) header:not(.header-blend) {
+            opacity: 0;
+        }
+
+        body.video-modal-open .header-blend {
+            display: none;
+        }
+
+        header *,
+        .brand-name,
+        .nav-links a,
+        .mobile-contact-container {
+            pointer-events: auto;
+        }
+
+        body.video-modal-open .nav-links a::after {
+            display: none !important;
+            mix-blend-mode: difference;
+        }
+
+        body.video-open .nav-links a::after,
+        body.video-open .filters-list a::after,
+        body.video-open .filter-btn::after {
+            background-color: #ffffff;
+        }
+
+        :root {
+            --fullscreen-header-offset: 68px;
+            --video-header-brand: #ffffff;
+        }
+
+        .brand {
+            display: flex;
+                    align-items: baseline;
+            flex: 1;
+            gap: 2px;
+        }
+
+        .brand-name {
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            word-spacing: 4px;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+            text-transform: uppercase;
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            font-weight: 450;
+            letter-spacing: 0.7px;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .brand-dot {
+            font-size: 14px;
+            margin: 0 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+                    align-items: baseline;
+            flex-shrink: 0;
+        }
+
+        .mobile-contact-container {
+            position: relative;
+            display: inline-flex;
+            align-items: baseline;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: inherit;
+            font-size: 14px;
+            font-weight: 450;
+            letter-spacing: 0.7px;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-bottom: 2px solid transparent;
+            position: relative;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+        }
+
+        /* Animated underline (left-to-right) for links and buttons */
+        .nav-links a::after,
+        .filters-list a::after,
+        .filter-btn::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 2px;
+            width: 100%;
+            background-color: var(--text-red);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .nav-links a:hover::after,
+        .filters-list a:hover::after,
+        .filter-btn:hover::after,
+        .nav-links a.active::after,
+        .filters-list a.active::after {
+            transform: scaleX(1);
+        }
+
+        .filters-list a,
+        .filter-btn {
+            position: relative;
+        }
+
+        .nav-links a.active {
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-links a.active::after {
+            display: none !important;
+        }
+
+        .filters-list a,
+        .filter-btn {
+            position: relative;
+        }
+
+        .nav-links a[href="#work"] {
+            display: none;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 100%;
+            padding: 72px 50px 220px 50px;
+        }
+
+        .work-heading {
+            font-size: 140px;
+            font-weight: bold;
+            letter-spacing: -3px;
+            margin-bottom: 110px;
+            margin-top: 0px;
+            line-height: 1;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 40px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: nowrap;
+        }
+
+        .work-text {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .work-roles {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 450;
+            letter-spacing: 0.7px;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+            text-transform: uppercase;
+            margin-top: 10px;
+            padding-left: 23px;
+        }
+
+        .filters-container {
+            text-align: left;
+            margin-top: 80px;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            gap: 80px;
+            justify-content: flex-end;
+            align-items: baseline;
+            padding-right: 200px;
+        }
+
+        .filters-label {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+            flex-shrink: 0;
+            margin-top: 0;
+            font-family: 'Roboto', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .filters-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .filters-list a {
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            padding-bottom: 3px;
+            border-bottom: 1.5px solid transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-weight: 500;
+        }
+
+        .filters-list a.active {
+            border-bottom: 1.5px solid currentColor;
+        }
+
+        .mobile-filter-toggle {
+            display: none;
+        }
+
+        .mobile-filter-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 120px;
+            padding: 8px 10px;
+            background: var(--page-bg);
+            border: 1px solid currentColor;
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            z-index: 10;
+        }
+
+        .mobile-filter-menu.open {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
+        .mobile-contact-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 235px;
+            padding: 10px 12px;
+            background: var(--page-bg);
+            border: 1px solid var(--text-red);
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            z-index: 3500;
+            color: var(--text-red);
+            mix-blend-mode: normal;
+        }
+
+        body.video-open .mobile-contact-menu {
+            background: #000000;
+            color: #ffffff;
+            border-color: #ffffff;
+            box-shadow: none;
+        }
+
+        body.video-open .mobile-contact-menu a,
+        body.video-open .mobile-contact-menu a:visited,
+        body.video-open .mobile-contact-menu a:hover,
+        body.video-open .mobile-contact-menu a:focus,
+        body.video-open .mobile-contact-menu span,
+        body.video-open .mobile-contact-menu svg {
+            color: #ffffff;
+        }
+
+        .mobile-contact-menu.open {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        @media (hover: hover) {
+            .mobile-contact-container:hover .mobile-contact-menu {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+
+        .mobile-contact-menu a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: inherit;
+            text-decoration: none;
+            font-size: 13px;
+            letter-spacing: 0.6px;
+            line-height: 1.3;
+            text-transform: none;
+            border-bottom: none;
+            padding: 2px 0;
+            font-family: 'Roboto', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .mobile-contact-menu a::after {
+            content: none;
+        }
+
+        .mobile-contact-menu a:hover {
+            opacity: 0.7;
+        }
+
+        .mobile-contact-menu svg {
+            width: 15px;
+            height: 15px;
+            flex: 0 0 15px;
+        }
+
+        .scroll-hint {
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Courier New', Courier, monospace;
+            color: inherit;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        body.video-open .scroll-hint {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .filters {
+            display: none;
+        }
+
+        .filter-btn {
+            border: 1px solid currentColor;
+            background-color: transparent;
+            color: inherit;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            border-radius: 20px;
+        }
+
+        .filter-btn.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            width: min(100%, 1400px);
+            max-width: 1400px;
+            margin: 0 auto;
+            counter-reset: project;
+        }
+
+        @media (min-width: 1440px) {
+            .videos-grid {
+                width: min(100%, 1800px);
+                max-width: 1800px;
+            }
+        }
+
+        .video-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            counter-increment: project;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 450ms ease, transform 450ms ease;
+            will-change: opacity, transform;
+        }
+
+        .video-item.filter-fade-hidden {
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #f3eee7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            border-radius: 18px;
+        }
+
+        .video-wrapper img,
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 18px;
+        }
+
+        /* Thumbnail that grows into the player when a project opens */
+        .thumb-fly {
+            position: fixed;
+            z-index: 2000;
+            object-fit: cover;
+            pointer-events: none;
+            background: #000000;
+        }
+
+        /* Smooth zoom on the thumbnail when hovering a project */
+        .video-wrapper {
+            transform: translateZ(0); /* keeps rounded corners clipped while zooming (Safari) */
+        }
+
+        .video-wrapper img {
+            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @media (hover: hover) {
+            .video-wrapper:hover img {
+                transform: scale(1.05);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .video-wrapper img {
+                transition: none;
+            }
+        }
+
+        .video-wrapper video {
+            pointer-events: none;
+        }
+
+        .video-title {
+            display: none;
+        }
+
+        .video-name {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.05px;
+            word-spacing: 10px;
+            font-family: 'Roboto', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+            text-transform: uppercase;
+            order: -1;
+            color: var(--text-red);
+            margin-bottom: 6px;
+        }
+
+        /* Prefix each project with its number and a slash: "1 / " */
+        .video-item .video-name::before {
+            content: counter(project) " / ";
+            font-family: 'Roboto', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 550;
+            letter-spacing: 0.8px;
+            margin-right: 8px;
+            color: var(--text-red);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .video-item {
+                transition: none;
+            }
+
+            .video-item.filter-fade-hidden {
+                transform: none;
+            }
+        }
+
+        .about-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .about-photo {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .about-content p {
+            font-size: 1px;
+            line-height: 1.8;
+        }
+
+        .about-section {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 10px 50px 200px 70px;
+            display: grid;
+            grid-template-columns: 180px minmax(0, 1fr);
+            align-items: flex-start;
+            column-gap: clamp(280px, 36vw, 860px);
+            transform: translateY(-0px);
+        }
+
+        .about-section-label {
+            flex: 0 0 180px;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-family: 'Roboto', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-red);
+            padding-top: 8px;
+            margin-left: 16px;
+        }
+
+        .about-section-copy {
+            width: 100%;
+            max-width: 900px;
+            margin-left: 20px;
+            display: flex;
+            justify-content: flex-start;
+            margin-right: auto;
+        }
+
+        .about-section-copy p {
+            font-size: clamp(16px, 1.9vw, 30px);
+            line-height: 1.18;
+            letter-spacing: -0.04em;
+            margin: 0;
+            color: var(--text-red);
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+            margin-left: 0;
+            transform: none;
+            transform-origin: left center;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            color: inherit;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .social-links svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Video Modal */
+        .video-modal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.28s ease;
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+        }
+
+        .video-modal.is-open {
+            opacity: 1;
+        }
+
+        .video-modal.is-closing {
+            opacity: 0;
+        }
+
+        /* Lenis smooth scrolling */
+        html.lenis, html.lenis body { height: auto; }
+        .lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+        .lenis [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-smooth iframe { pointer-events: none; }
+
+        body.video-modal-open {
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        .video-modal-content {
+            background-color: transparent;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: none;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            height: auto;
+            animation: slideDown 0.25s ease;
+            transform: translateY(0);
+        }
+
+        .video-modal-player {
+            width: min(100vw, calc(100vh * 16 / 9));
+            max-width: 100%;
+            height: min(100vh, calc(100vw * 9 / 16));
+            max-height: 100vh;
+            min-height: 220px;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+            background-color: #000000;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            flex: 0 0 auto;
+        }
+
+        .video-modal-player iframe,
+        .video-modal-player video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: center center;
+            background-color: #000000;
+            filter: none !important;
+            opacity: 1 !important;
+        }
+
+        .video-custom-controls {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px 18px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+            pointer-events: none;
+            width: 100%;
+            opacity: 1;
+            transition: opacity 0.28s ease;
+        }
+
+        .video-custom-controls.video-controls-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .video-custom-controls {
+                padding-right: 48px;
+            }
+        }
+
+        .video-custom-toggle,
+        .video-custom-scrubber {
+            pointer-events: auto;
+            position: relative;
+            z-index: 4;
+        }
+
+        .video-fullscreen-toggle {
+            position: absolute;
+            right: 14px;
+            bottom: 16px;
+            z-index: 5;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            color: #ffffff;
+            cursor: pointer;
+            pointer-events: auto;
+            padding: 0;
+            line-height: 1;
+            opacity: 1;
+            transition: opacity 0.28s ease, transform 0.2s ease;
+        }
+
+        .video-fullscreen-toggle.video-controls-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .video-fullscreen-toggle svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            fill: currentColor;
+        }
+
+        .video-fullscreen-toggle:hover,
+        .video-fullscreen-toggle:focus-visible {
+            opacity: 0.8;
+            transform: scale(1.05);
+            background: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .video-fullscreen-toggle {
+                display: inline-flex;
+            }
+        }
+
+        .video-custom-scrubber-wrap {
+            position: relative;
+            flex: 1;
+            height: 22px;
+            display: flex;
+            align-items: center;
+        }
+
+        .video-custom-scrubber {
+            width: 100%;
+            appearance: none;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.38);
+            border-radius: 999px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .video-custom-scrubber::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 0;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+
+        .video-custom-scrubber::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 0;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+
+        .video-custom-scrubber::-moz-range-track {
+            height: 2px;
+            background: rgba(255, 255, 255, 0.38);
+            border-radius: 999px;
+        }
+
+        .video-modal-info {
+            margin-top: 0;
+            padding: 34px 30px clamp(34px, 4vh, 72px);
+            background: var(--page-bg);
+            color: var(--text-red);
+            width: 100%;
+            max-width: none;
+            margin-left: 0;
+            margin-right: 0;
+            min-height: 0;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            overflow: visible;
+            justify-content: flex-start;
+        }
+        .video-modal-info {
+            padding: 26px 18px 12px;
+            min-height: 0;
+            flex: 1 1 auto;
+            overflow: visible;
+        }
+        .video-modal-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .video-modal-year {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: inherit;
+            font-weight: 600;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        body.video-open .mobile-contact-menu {
+            background: #000000;
+            color: #ffffff;
+            border-color: #ffffff;
+            box-shadow: none;
+        }
+
+        body.video-open .mobile-contact-menu a,
+        body.video-open .mobile-contact-menu a:visited,
+        body.video-open .mobile-contact-menu a:hover,
+        body.video-open .mobile-contact-menu a:focus,
+        body.video-open .mobile-contact-menu span,
+        body.video-open .mobile-contact-menu svg {
+            color: #ffffff;
+        }
+
+        .video-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 30px;
+            margin-bottom: 15px;
+        }
+
+        .video-modal-title {
+            font-size: 24px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-family: 'Roboto', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+            letter-spacing: 0.05px;
+            word-spacing: 10px;
+            margin-top: 44px;
+            margin-bottom: 30px;
+        }
+
+        .video-modal-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+            align-items: flex-start;
+            column-gap: clamp(32px, 5vw, 110px);
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding-left: 0;
+            padding-right: 0;
+            margin-top: clamp(32px, 4vw, 70px);
+            margin-bottom: clamp(72px, 8vw, 150px);
+            justify-items: start;
+        }
+
+        .video-modal-left {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 660px;
+        }
+
+        .video-modal-title {
+            margin: 0;
+            font-size: clamp(22px, 1.8vw, 48px);
+            line-height: 0.96;
+            letter-spacing: -0.06em;
+            text-transform: none;
+            word-spacing: normal;
+            font-weight: 700;
+            max-width: 620px;
+            color: #000000;
+            text-align: left;
+            justify-self: start;
+            align-self: start;
+            margin-right: 0;
+            padding-left: 0;
+            margin-left: 0;
+        }
+
+        .video-modal-summary {
+            margin: 0;
+            margin-top: clamp(6px, 0.6vw, 12px);
+            max-width: 620px;
+            font-size: 14px;
+            line-height: 1.55;
+            letter-spacing: 0.02em;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.45);
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+            text-align: left;
+            white-space: pre-line;
+        }
+
+        .video-modal-description {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-top: 12px;
+            color: var(--text-red);
+            max-width: 420px;
+            justify-self: start;
+            width: 100%;
+            text-align: left;
+            margin-left: clamp(0px, 1.5vw, 26px);
+            transform: translateX(0);
+            padding-bottom: 12px;
+        }
+
+        .video-modal-description .credit-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .video-modal-description .credit-label {
+            font-size: 16px;
+            line-height: 1.25;
+            letter-spacing: -0.01em;
+            color: rgba(0, 0, 0, 0.32);
+            font-weight: 500;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+        }
+
+        .video-modal-description .credit-name {
+            font-size: 16px;
+            line-height: 1.25;
+            color: #000000;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+        }
+
+        .video-modal-description {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: auto;
+            color: inherit;
+            max-width: 900px;
+            white-space: pre-line;
+        }
+
+        .video-modal-footer {
+            margin-top: 0;
+            padding-top: 10px;
+            padding-bottom: 0;
+            gap: 12px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: baseline;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            word-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-red);
+        }
+
+        .video-modal-footer-left,
+        .video-modal-footer-right,
+        .video-modal-back-home {
+            color: var(--text-red);
+        }
+
+        .video-modal-footer-left {
+            justify-self: start;
+        }
+
+        .video-modal-footer-right {
+            justify-self: end;
+        }
+
+        .video-modal-back-home {
+            justify-self: center;
+            color: inherit;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .video-modal-back-home:hover {
+            opacity: 0.75;
+        }
+
+        .video-modal-category {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: inherit;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: var(--page-bg);
+            margin: auto;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 24px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translate(-50%, -60%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-18px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: inherit;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #666666;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-form input,
+        .contact-form textarea {
+            padding: 12px;
+            border: 1px solid currentColor;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            background-color: var(--page-bg);
+            color: inherit;
+        }
+
+        .contact-form textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .contact-form button {
+            background-color: #000000;
+            color: #ffffff;
+            padding: 12px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        /* Footer */
+        .site-footer {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 17px 30px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: var(--page-bg);
+            color: #000000;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            word-spacing: 2px;
+            text-transform: uppercase;
+            flex-wrap: wrap;
+        }
+
+        .site-footer-left,
+        .site-footer-right {
+            display: flex;
+            align-items: baseline;
+        }
+
+        /* [BACK TO TOP] sits in the middle, like [Back Home] in the project footer */
+        .site-footer-back-top {
+            color: inherit;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .site-footer-back-top:hover {
+            opacity: 0.75;
+        }
+
+        @media (min-width: 769px) {
+            .site-footer {
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+            }
+
+            .site-footer-left {
+                justify-self: start;
+            }
+
+            .site-footer-back-top {
+                justify-self: center;
+            }
+
+            .site-footer-right {
+                justify-self: end;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .site-footer-back-top {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .site-footer {
+                padding: 12px 18px;
+                font-size: 12px;
+                word-spacing: 1px;
+                letter-spacing: 0.2px;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            main {
+                padding-bottom: 80px;
+            }
+
+            .about-section {
+                grid-template-columns: 1fr;
+                row-gap: 10px;
+                padding: 0 50px 65px;
+            }
+
+            .about-section-label,
+            .about-section-copy,
+            .about-section-copy p {
+                text-align: left;
+            }
+
+            .about-section-label {
+                padding-top: 0;
+                flex: none;
+                padding: 0;
+                margin-left: 0;
+                font-size: 16px;
+                font-weight: 700;
+            }
+
+            .about-section-copy {
+                max-width: 100%;
+                padding: 0;
+                margin-left: 0;
+            }
+
+            .about-section-copy p {
+                max-width: 100%;
+                font-size: clamp(17px, 2.6vw, 24px);
+            }
+
+            .work-heading {
+                align-items: flex-end;
+                gap: 20px;
+            }
+
+            .filters-container {
+                margin-top: 0;
+                margin-left: auto;
+                flex: 0 0 auto;
+                display: flex;
+                justify-content: flex-end;
+                align-items: flex-end;
+                align-self: flex-end;
+                position: relative;
+                padding-right: 0;
+            }
+
+            .filters-label,
+            .filters-list {
+                display: none;
+            }
+
+            .mobile-filter-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8px 14px;
+                border: 1px solid currentColor;
+                background: transparent;
+                color: inherit;
+                border-radius: 999px;
+                font-family: 'Roboto', 'Roboto Condensed', 'Helvetica Neue', Arial, sans-serif;
+                font-size: 12px;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                cursor: pointer;
+                line-height: 1;
+                position: relative;
+                z-index: 3;
+            }
+
+            .mobile-filter-toggle:hover,
+            .mobile-filter-toggle[aria-expanded="true"] {
+                background: #000000;
+                color: #ffffff;
+            }
+
+            .mobile-filter-menu {
+                display: none;
+                position: absolute;
+                top: calc(100% + 10px);
+                right: 0;
+                min-width: 120px;
+                padding: 8px 10px;
+                background: var(--page-bg);
+                border: 1px solid currentColor;
+                border-radius: 14px;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+                z-index: 10;
+            }
+
+            .mobile-filter-menu.open {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+            }
+
+            .mobile-filter-menu .filter-link {
+                display: inline-block;
+                color: inherit;
+                text-decoration: none;
+                font-size: 14px;
+                line-height: 1.2;
+                letter-spacing: 1.2px;
+                padding: 2px 0;
+                position: relative;
+                width: fit-content;
+            }
+
+            .mobile-filter-menu .filter-link::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: -1px;
+                width: 100%;
+                height: 1.5px;
+                background: currentColor;
+                transform: scaleX(0);
+                transform-origin: left;
+                transition: transform 0.2s ease;
+            }
+
+            .mobile-filter-menu .filter-link.active {
+                border-bottom: none;
+                margin-bottom: 0;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 30px;
+            }
+
+            .video-modal-content {
+                width: 100%;
+                padding: 0;
+                min-height: 100vh;
+                height: auto;
+            }
+
+            .video-modal-player {
+                width: min(100vw, calc(100vh * 16 / 9));
+                height: min(calc(100vh - 220px), calc(100vw * 9 / 16));
+                min-height: 220px;
+                max-height: calc(100vh - 220px);
+                margin: 0 auto;
+            }
+
+            .video-modal-info {
+                padding: 26px 18px 8px;
+                min-height: 0;
+                flex: 1 1 auto;
+                overflow: visible;
+            }
+
+            .video-modal-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .video-modal-title {
+                width: 100%;
+                word-spacing: 4px;
+                margin-top: 34px;
+                margin-bottom: 6px;
+            }
+
+            .video-modal-category {
+                white-space: normal;
+                align-self: flex-start;
+            }
+
+            .video-modal-player {
+                width: 100%;
+                height: auto;
+                min-height: 0;
+                aspect-ratio: 16 / 9;
+            }
+
+            .video-modal-player iframe,
+            .video-modal-player video {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            .video-modal-info {
+                padding: 26px 18px 8px;
+                min-height: 0;
+                flex: 1 1 auto;
+            }
+
+            .video-modal-meta {
+                margin-bottom: 12px;
+            }
+
+            .video-modal-footer {
+                margin-top: auto;
+                font-size: 12px;
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .video-modal-footer-left,
+            .video-modal-footer-right,
+            .video-modal-back-home {
+                justify-self: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --fullscreen-header-offset: 0px;
+            }
+
+            .video-modal-layout {
+                display: block;
+                margin-top: 18px;
+                margin-bottom: 24px;
+            }
+
+            .video-modal-title {
+                display: block;
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            .video-modal-description {
+                margin-left: 0;
+                margin-top: 22px;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+
+            header {
+                padding: 3px 15px 10px;
+            }
+
+            .video-modal-footer {
+                width: 100%;
+                grid-template-columns: minmax(0, 1fr) auto;
+                text-align: initial;
+                gap: 12px;
+            }
+
+            .video-modal-footer-left {
+                grid-column: 1;
+                justify-self: start;
+            }
+
+            .video-modal-footer-right {
+                grid-column: 2;
+                justify-self: end;
+                text-align: right;
+                margin-left: auto;
+                white-space: nowrap;
+            }
+
+            .video-modal-back-home {
+                justify-self: center;
+                position: relative;
+                top: -6px;
+                display: none;
+            }
+
+            .video-modal-close {
+                right: 16px;
+                top: 12px;
+            }
+
+            .video-name {
+                word-spacing: 4px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .scroll-hint {
+                display: none;
+            }
+
+            .work-heading {
+                font-size: 46px;
+                gap: 8px;
+                margin-bottom: 48px;
+                align-items: flex-end;
+            }
+
+            .work-roles {
+                padding-left: 8px;
+                font-size: 11px;
+                gap: 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --fullscreen-header-offset: 0px;
+            }
+
+            .video-modal-title {
+                margin-bottom: 2px;
+            }
+
+            .video-modal-summary {
+                margin-top: 0;
+                margin-bottom: 28px;
+                transform: none;
+            }
+
+            .video-modal-description {
+                gap: 18px;
+                margin-bottom: 18px;
+                padding-bottom: 8px;
+            }
+
+            .video-modal-description .credit-item {
+                gap: 4px;
+            }
+
+            .work-heading {
+                font-size: 40px;
+                gap: 8px;
+                margin-bottom: 36px;
+                align-items: center;
+                transform: translateY(-12px);
+            }
+
+            header {
+                padding: 3px 8px 8px;
+            }
+
+            .video-modal-close {
+                right: 10px;
+                top: 10px;
+            }
+
+            .video-name {
+                word-spacing: 2px;
+            }
+
+            .brand {
+                gap: 3px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .brand-name {
+                word-spacing: 3px;
+                font-weight: bold;
+            }
+
+            .brand-middle {
+                gap: 4px;
+                width: auto;
+                display: flex;
+                grid-template-columns: none;
+                justify-content: flex-start;
+                font-size: 11px;
+            }
+
+            .brand-middle .role:first-child {
+                justify-self: auto;
+                text-align: left;
+            }
+
+            .brand-middle .role:last-child {
+                justify-self: auto;
+                text-align: left;
+            }
+
+            .nav-links {
+                gap: 12px;
+            }
+
+            .nav-links a {
+                padding-top: 2px;
+                padding-bottom: 2px;
+            }
+
+            main {
+                padding: 56px 10px;
+            }
+
+            .about-section {
+                padding: 30px 10px 55px;
+            }
+
+            .about-section-copy {
+                padding: 0;
+            }
+
+            .about-section-label {
+                padding: 0;
+                font-size: 15px;
+            }
+
+            .about-section-copy p {
+                font-size: clamp(16px, 4.8vw, 20px);
+            }
+
+            .work-heading {
+                font-size: 40px;
+                gap: 8px;
+                margin-bottom: 56px;
+                align-items: center;
+            }
+
+            .filters-container {
+                margin-top: 15px;
+                gap: 10px;
+                font-size: 12px;
+            }
+        }
+
+        /* WORK block stays in place while the videos scroll up over it (header stays on top) */
+        .work-heading {
+            position: sticky;
+            top: var(--work-heading-top, 0px);
+            z-index: 20;
+            /* Sinks back into the page while scrolling (set from JS) */
+            scale: var(--work-depth-scale, 1);
+            opacity: var(--work-depth-opacity, 1);
+            transform-origin: center 40%;
+        }
+
+        .videos-grid {
+            position: relative;
+            z-index: 30;
+            background-color: var(--page-bg);
+        }
+
+        /* Soft edge: WORK and the filters fade out instead of being cut off by a hard line */
+        .videos-grid::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            width: 100vw;
+            margin-left: -50vw; /* full page width, so the fade has no visible side edges */
+            bottom: 100%;
+            height: 90px;
+            background: linear-gradient(to bottom, rgba(236, 230, 221, 0), var(--page-bg));
+            pointer-events: none;
+        }
+
+        @media (max-width: 560px) {
+            .videos-grid::before {
+                height: 60px;
+            }
+        }
+
+        /* main ends right at the last video, so WORK can't reappear below the grid;
+           the old bottom padding of main moves to the About section instead */
+        main {
+            padding-bottom: 0;
+        }
+
+        .about-section {
+            margin-top: 220px;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                padding-bottom: 0;
+            }
+
+            .about-section {
+                margin-top: 80px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding-bottom: 0;
+            }
+
+            .about-section {
+                margin-top: 56px;
+            }
+        }
+
+        /* While the filter dropdown is open, keep it above the videos */
+        body.filter-menu-open .work-heading {
+            z-index: 40;
+        }
+
+        /* Filter dropdown unrolls from top to bottom, then the items drop in one by one */
+        .mobile-filter-menu.open {
+            animation: filterMenuUnroll 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .mobile-filter-menu.open .filter-link {
+            animation: filterLinkDrop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .mobile-filter-menu.open .filter-link:nth-child(1) { animation-delay: 0.08s; }
+        .mobile-filter-menu.open .filter-link:nth-child(2) { animation-delay: 0.12s; }
+        .mobile-filter-menu.open .filter-link:nth-child(3) { animation-delay: 0.16s; }
+        .mobile-filter-menu.open .filter-link:nth-child(4) { animation-delay: 0.20s; }
+        .mobile-filter-menu.open .filter-link:nth-child(5) { animation-delay: 0.24s; }
+        .mobile-filter-menu.open .filter-link:nth-child(6) { animation-delay: 0.28s; }
+
+        @keyframes filterMenuUnroll {
+            from {
+                clip-path: inset(0 0 100% 0);
+                transform: translateY(-6px);
+            }
+            to {
+                /* negative insets so the shadow isn't cut off at the end */
+                clip-path: inset(-10px -40px -50px -40px);
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes filterLinkDrop {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Contact dropdown (phone + desktop) uses the same unroll + drop-in animation */
+        .mobile-contact-menu.open {
+            animation: filterMenuUnroll 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* "backwards" (not "both") so the hover opacity on the links keeps working afterwards */
+        .mobile-contact-menu.open a {
+            animation: filterLinkDrop 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+        }
+
+        .mobile-contact-menu.open a:nth-child(1) { animation-delay: 0.08s; }
+        .mobile-contact-menu.open a:nth-child(2) { animation-delay: 0.12s; }
+        .mobile-contact-menu.open a:nth-child(3) { animation-delay: 0.16s; }
+        .mobile-contact-menu.open a:nth-child(4) { animation-delay: 0.20s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mobile-contact-menu.open,
+            .mobile-contact-menu.open a,
+            .mobile-filter-menu.open,
+            .mobile-filter-menu.open .filter-link {
+                animation: none;
+            }
+        }
+
+        /* Fullscreen arrow inverts against the video, like the header */
+        .video-fullscreen-toggle {
+            mix-blend-mode: difference;
+        }
+
+        /* Phone: project info tighter under the meta row, smaller credits */
+        @media (max-width: 768px) {
+            .about-section {
+                padding-bottom: 110px;
+            }
+
+            .video-modal-footer {
+                column-gap: 28px;
+                font-size: 11px;
+                letter-spacing: 0.2px;
+                word-spacing: 1px;
+                margin-left: -8px;
+                margin-right: -8px;
+            }
+
+            /* Main-page footer matches the project footer, in black */
+            .site-footer {
+                padding: 12px 10px;
+                column-gap: 28px;
+                font-size: 11px;
+                letter-spacing: 0.2px;
+                word-spacing: 1px;
+                flex-wrap: nowrap;
+                color: #000000;
+            }
+
+            .site-footer-right {
+                white-space: nowrap;
+            }
+
+            .video-modal-info {
+                padding-top: 10px;
+            }
+
+            .video-modal-meta {
+                margin-bottom: 0;
+            }
+
+            .video-modal-layout {
+                margin-top: 18px;
+                margin-bottom: 56px;
+            }
+
+            .video-modal-title {
+                margin-top: 0;
+                margin-bottom: 2px;
+            }
+
+            .video-modal-summary {
+                margin-top: 0;
+                margin-bottom: 28px;
+            }
+
+            .video-modal-description {
+                gap: 26px;
+                margin-bottom: 40px;
+            }
+
+            .video-modal-description .credit-item {
+                gap: 3px;
+            }
+
+            .video-modal-description .credit-label {
+                font-size: 13px;
+            }
+
+            .video-modal-description .credit-name {
+                font-size: 13px;
+            }
+        }
+
+        /* Phone: bigger WORK heading with more space above it */
+        @media (max-width: 560px) {
+            main {
+                padding-top: 60px;
+            }
+
+            .work-heading {
+                font-size: 62px;
+                margin-bottom: 72px;
+            }
+        }
+
+        /* Desktop: About text starts at the middle of the page */
+        @media (min-width: 1025px) {
+            .about-section {
+                grid-template-columns: 1fr 1fr;
+                column-gap: 0;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .about-section-label {
+                margin-left: 86px;
+            }
+
+            .about-section-copy {
+                margin-left: 0;
+                padding-right: 50px;
+            }
+        }
+
+        /* Not on phone: project credits start at the middle of the page */
+        @media (min-width: 769px) {
+            .video-modal-layout {
+                grid-template-columns: 1fr 1fr;
+                column-gap: 0;
+                max-width: none;
+                margin-top: clamp(14px, 1.6vw, 28px);
+                margin-bottom: clamp(120px, 12vw, 240px);
+            }
+
+            .video-modal-description {
+                margin-left: 0;
+            }
+
+            .video-modal-title {
+                margin-top: 0;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .video-modal-footer:has(.video-modal-back-home[style*="display: none"]) {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .video-modal-info:has(.video-modal-footer .video-modal-back-home[style*="display: none"]) .video-modal-layout {
+                grid-template-columns: 1fr;
+                margin-bottom: clamp(42px, 5vw, 84px);
+            }
+
+            .video-modal-info:has(.video-modal-footer .video-modal-back-home[style*="display: none"]) .video-modal-description {
+                margin-left: 0;
+                max-width: 720px;
+            }
+        }
+
+        .video-custom-toggle {
+            appearance: none;
+            border: none;
+            border-color: transparent;
+            outline: none;
+            box-shadow: none;
+            background: transparent !important;
+            color: #ffffff;
+            cursor: pointer;
+            padding: 0;
+            font-family: 'Roboto', 'Roboto Condensed', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Sound button: right of the timeline, hidden on phones */
+        .video-custom-mute {
+            min-width: 92px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .video-custom-controls .video-custom-mute {
+                display: none;
+            }
+        }
+
+        .video-custom-toggle:hover {
+            opacity: 0.8;
+            background: transparent !important;
+        }
+
+        .video-custom-toggle:focus,
+        .video-custom-toggle:focus-visible {
+            outline: none;
+            box-shadow: none;
+            border: none;
+            background: transparent !important;
+        }
+
+        .video-fullscreen-toggle {
+            position: absolute;
+            right: 14px;
+            bottom: 16px;
+            z-index: 5;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            color: #ffffff;
+            cursor: pointer;
+            pointer-events: auto;
+            padding: 0;
+            line-height: 1;
+            opacity: 1;
+            transition: opacity 0.28s ease, transform 0.2s ease;
+        }
+
+        .video-fullscreen-toggle.video-controls-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .video-fullscreen-toggle svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            fill: currentColor;
+        }
+
+        .video-fullscreen-toggle:hover,
+        .video-fullscreen-toggle:focus-visible {
+            opacity: 0.8;
+            transform: scale(1.05);
+            background: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .video-fullscreen-toggle {
+                display: inline-flex;
+            }
+        }
+        /* Phone: lighter name in a project so it covers less of the video */
+        @media (max-width: 768px) {
+            body.video-modal-open .brand-name {
+                font-weight: 400;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <a href="#" class="brand-name" id="homeLink">Sander Bosmans</a>
+            <div style="width:1px"></div>
+        </div>
+        <nav class="nav-links">
+            <a href="#about" id="aboutLink">[About]</a>
+            <div class="mobile-contact-container">
+                <a href="#" id="contactLink" aria-expanded="false" aria-controls="mobileContactMenu">[Contact]</a>
+                <div class="mobile-contact-menu" id="mobileContactMenu" aria-hidden="true">
+                    <a href="https://www.instagram.com/bosmans_sander/" target="_blank" rel="noopener noreferrer" title="Instagram">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163C8.756 0 8.331.012 7.052.07 2.696.278.28 2.71.047 7.052.012 8.331 0 8.756 0 12c0 3.244.011 3.668.048 4.948.278 4.344 2.679 6.769 7.024 6.977 1.279.059 1.704.071 4.928.071 3.227 0 3.651-.012 4.927-.072 4.343-.278 6.768-2.693 7.024-7.024.036-1.28.048-1.704.048-4.927 0-3.224-.012-3.668-.048-4.948-.278-4.343-2.693-6.773-7.024-6.98C15.668.012 15.244 0 12 0z"></path>
+                            <circle cx="12" cy="12" r="3.6"></circle>
+                            <circle cx="18.406" cy="5.594" r=".6"></circle>
+                        </svg>
+                        <span>Instagram</span>
+                    </a>
+                    <a href="https://wa.me/32496067089" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"></path>
+                        </svg>
+                        <span>Whatsapp - 0496067089</span>
+                    </a>
+                    <a href="mailto:sanderbosmans146@gmail.com?subject=Portfolio%20Inquiry" title="Email">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                            <path d="M4 7l8 6 8-6"></path>
+                        </svg>
+                        <span>sanderbosmans146@gmail.com</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        <div class="scroll-hint">Scroll to view more ↓</div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="work-heading">
+            <div class="work-text">
+                WORK.
+                <div class="work-roles">
+                    <span>Editor</span>
+                    <span></span>
+                    <span>Videographer</span>
+                </div>
+            </div>
+            <div class="filters-container">
+                <label class="filters-label">Filters:</label>
+                <div class="filters-list">
+                    <a href="#" data-filter="all" class="filter-link active">All</a>
+                    <a href="#" data-filter="Aftermovie" class="filter-link">Aftermovie</a>
+                    <a href="#" data-filter="Narrative" class="filter-link">Narrative</a>
+                    <a href="#" data-filter="RITCS" class="filter-link">RITCS</a>
+                    <a href="#" data-filter="Personal" class="filter-link">Personal</a>
+                    <a href="#" data-filter="Other" class="filter-link">Other</a>
+                </div>
+                <button type="button" class="mobile-filter-toggle" aria-expanded="false" aria-controls="mobileFilterMenu">Filters</button>
+                <div class="mobile-filter-menu" id="mobileFilterMenu" aria-hidden="true">
+                    <a href="#" data-filter="all" class="filter-link active">All</a>
+                    <a href="#" data-filter="Aftermovie" class="filter-link">Aftermovie</a>
+                    <a href="#" data-filter="Narrative" class="filter-link">Narrative</a>
+                    <a href="#" data-filter="RITCS" class="filter-link">RITCS</a>
+                    <a href="#" data-filter="Personal" class="filter-link">Personal</a>
+                    <a href="#" data-filter="Other" class="filter-link">Other</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Videos Grid -->
+        <div class="videos-grid" id="videosGrid">
+            <!-- Videos worden hier automatisch toegevoegd via JavaScript -->
+        </div>
+    </main>
+
+    <!-- Video Player Modal -->
+    <div id="videoModal" class="video-modal">
+        <div class="video-modal-content">
+            <div class="video-modal-player" id="modalPlayerContainer">
+                <!-- player (video or iframe) will be injected here -->
+            </div>
+            <div class="video-modal-info">
+                <div class="video-modal-meta">
+                    <div class="video-modal-category" id="modalVideoCategory">Category</div>
+                    <div class="video-modal-year" id="modalVideoYear">Year</div>
+                </div>
+                <div class="video-modal-layout">
+                    <div class="video-modal-left">
+                        <div class="video-modal-title" id="modalVideoTitle">Project Title</div>
+                        <div class="video-modal-summary" id="modalVideoSummary">TEXT HIER</div>
+                    </div>
+                    <div class="video-modal-description" id="modalVideoDescription">
+                        <div class="credit-item">
+                            <div class="credit-label">TEXT HIER</div>
+                            <div class="credit-name">TEXT HIER</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="video-modal-footer">
+                    <div class="video-modal-footer-left">sanderbosmans146@gmail.com</div>
+                    <a href="#" class="video-modal-back-home" id="modalBackHome">[Back Home]</a>
+                    <div class="video-modal-footer-right">Brussels, Belgium</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal" data-lenis-prevent>
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-title">Get in Touch</div>
+            <form class="contact-form" id="contactForm" action="https://formspree.io/f/mbdpagpz" method="POST">
+                <input type="text" placeholder="Name" required>
+                <input type="email" placeholder="Email" required>
+                <input type="text" placeholder="Subject" required>
+                <textarea placeholder="Message" required></textarea>
+                <button type="submit">Send Message</button>
+                <div class="social-links">
+                    <a href="https://wa.me/0496067089" target="_blank" title="WhatsApp">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-4.255.949c-1.238.503-2.335 1.236-3.356 2.258-1.688 1.694-2.854 3.978-2.854 6.347 0 1.54.378 3.017 1.007 4.42L1.05 23.489l4.906-1.559A9.822 9.822 0 0012.04 23c5.51 0 9.98-4.479 9.98-9.98 0-2.665-.997-5.151-2.651-7.033-1.654-1.882-3.978-3.062-6.5-3.062z"/>
+                        </svg>
+                    </a>
+                    <a href="https://www.instagram.com/bosmans_sander/" target="_blank" title="Instagram">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163C8.756 0 8.331.012 7.052.07 2.696.278.28 2.71.047 7.052.012 8.331 0 8.756 0 12c0 3.244.011 3.668.048 4.948.278 4.344 2.679 6.769 7.024 6.977 1.279.059 1.704.071 4.928.071 3.227 0 3.651-.012 4.927-.072 4.343-.278 6.768-2.693 7.024-7.024.036-1.28.048-1.704.048-4.927 0-3.224-.012-3.668-.048-4.948-.278-4.343-2.693-6.773-7.024-6.98C15.668.012 15.244 0 12 0z"/>
+                            <circle cx="12" cy="12" r="3.6"/>
+                            <circle cx="18.406" cy="5.594" r=".6"/>
+                        </svg>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutModal" class="modal" data-lenis-prevent>
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-title">About Me</div>
+            <div class="about-content">
+                <p>I am a passionate videographer and editor with a solid foundation in color grading. I genuinely enjoy working on both simple and complex projects. I mainly do Aftermovies, social media and narrative content but am open for any project as videographer and/or Editor. I am currently in my second year as a film student at RITCS (Royal Institute for Theater Cinema and Sound) located in Brussels, Belgium.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section (newly added) -->
+    <div id="about" class="about-section">
+        <div class="about-section-label">About Me</div>
+        <div class="about-section-copy">
+            <p>I am a passionate Brussels based Editor and Videographer. I mainly do Aftermovies and Narrative content but am open for any project as videographer and/or Editor. I am currently in my third year as a film (Editing) student at RITCS.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="site-footer-left">sanderbosmans146@gmail.com</div>
+        <a href="#" class="site-footer-back-top" id="backToTop">[BACK TO TOP]</a>
+        <div class="site-footer-right">Brussels, Belgium</div>
+    </footer>
+
+    <!-- Smooth scrolling (Lenis) -->
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
+    <script>
+        // Smooth wheel scrolling on desktop; phones keep native touch scrolling.
+        // Turned off for visitors who prefer reduced motion.
+        const lenis = (window.Lenis && !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+            ? new Lenis({ lerp: 0.1, autoRaf: true, syncTouch: false })
+            : null;
+    </script>
+
+    <script>
+        // ===========================================
+        // VIDEO DATA - Zet hier je lokale MP4 bestanden en thumbnails neer!
+        // ===========================================
+        // TIPS:
+        // - Gebruik een lokaal pad zoals: "videos/film-01.mp4"
+        // - Voeg een lokale thumbnail toe via "thumbnails/film-01.jpg" (optioneel, maar aanbevolen)
+        // - Laat 'title' en 'description' zoals je wilt; deze blijven intact in de modal
+        // - 'year' verschijnt rechtsboven in fullscreen
+        // - 'category' kan een enkele waarde zijn of een array voor meerdere categorieën
+        const videoData = [
+            {
+                title: "Not All That Glitters Is Gold",
+                category: ["Narrative"],
+                year: "2026",
+                description: "DIRECTOR: Andy Sarfo\nPRODUCTION COMPANY: The Ground\nPRODUCERS: Noah Verniers, Andy Sarfo, Louisiana Mees Fongang\nDOP: Lukas Gevaert\nEDITING: Sander Bosmans\nSOUND DESIGNER: Noah Verniers\nTRAILER: Sander Bosmans\nSCORE COMPOSED BY: Noah Verniers",
+                summary: "Short Film",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/Not%20All%20That%20Glitters%20Is%20Gold%20%7C%20Short%20Film.mov",
+                thumbnail: "thumbnails/Not All That Glitters Is Gold | Short Film.png"
+            },
+            {
+                title: "Unravel",
+                category: ["Aftermovie"],
+                year: "2026",
+                description: "DANCERS:Una Vez Dance Studio\nCAMERA: Sander Bosmans\nEditing: Sander Bosmans",
+                summary: "Aftermovie",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/UNRAVEL%20Aftermovie.mp4",
+                thumbnail: "thumbnails/UNRAVEL Aftermovie.png"
+            },
+            {
+                title: "Grand garcon de mama",
+                category: ["Narrative", "RITCS"],
+                year: "2025",
+                description: "DIRECTORS: Moira Vande Voorde & Soufiane Chairi\nPRODUCER: Janou Gheysen\nEDITOR: Sander Bosmans",
+                summary: "RITCS Project, Documentary",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/La%20Star%20De%20Rixensar%20%20DOCUMENTARY.mp4",
+                thumbnail: "thumbnails/Another Project.png"
+            },
+            {
+                title: "La Star De Rixensar",
+                category: ["Narrative", "RITCS"],
+                year: "2026",
+                description: "DIRECTOR: Louise Arfoui\nDOP: Helena Bourgeois\nSOUND: Wannes Voncken\nEDIT: Sander Bosmans",
+                summary: "RITCS Project, Documentary",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/Soufiane%20Chairi%20IAO.mp4",
+                thumbnail: "thumbnails/La Star De Rixensar | DOCUMENTARY.png"
+            },
+            {
+                title: "Dansshow Intro Videos",
+                category: ["Other"],
+                year: "2024",
+                description: "CREATOR: Sander Bosmans\nDANSCOMPANY: Pirouette",
+                summary: "These videos were made by me for a 80's themed dansshow. These video's were used to introduce every new part of the show.",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/Dansshow%20Intro%20Videos.mp4",
+                thumbnail: "thumbnails/Dansshow Intro Videos.png"
+            },
+            {
+                title: "Little Trip",
+                category: ["Personal"],
+                year: "2024",
+                description: "CREATOR: Sander Bosmans",
+                summary: "Personal Project",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/Little%20Trip.mp4",
+                thumbnail: "thumbnails/Little Trip.png"
+            },
+            {
+                title: "Soufiane Chairi IAO",
+                category: ["Narrative", "RITCS"],
+                year: "2024",
+                description: "DIRECTOR: Soufiane Chairi\nEDITOR: Sander Bosmans",
+                summary: "RITCS Project",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/La%20Star%20De%20Rixensar%20%7C%20DOCUMENTARY.mp4",
+                thumbnail: "thumbnails/Soufiane Chairi IAO.png",
+                appendDocuSuffix: true
+            },
+            {
+                title: "ATF2 project - Nelson",
+                category: ["Narrative", "RITCS"],
+                year: "2026",
+                description: "DIRECTOR: Nelson\nWRITING: Ivo\nDOP: Arne\nEDITING: Sander Bosmans",
+                summary: "RITCS Project",
+                videoUrl: "https://pub-abebc252308541b28de91c29fec20491.r2.dev/ATF2_SC17_NELSON_IVO_H264.mp4",
+                thumbnail: "thumbnails/ATF2_SC17_NELSON_IVO_H264.png"
+            }
+        ];
+
+        // Render video's op de pagina
+        function renderVideos() {
+            const grid = document.getElementById('videosGrid');
+            grid.innerHTML = '';
+
+            videoData.forEach((video, index) => {
+                const videoItem = document.createElement('div');
+                videoItem.className = 'video-item';
+
+                const categories = Array.isArray(video.category) ? video.category : [video.category];
+                videoItem.setAttribute('data-category', categories.join(','));
+
+                const thumbnailSrc = video.thumbnail || '';
+                const hasThumbnail = Boolean(thumbnailSrc);
+
+                videoItem.innerHTML = `
+                    <div class="video-name">${video.title}</div>
+                    <div class="video-wrapper video-trigger"
+                         data-video-src="${video.videoUrl}"
+                         data-video-title="${video.title}"
+                         data-video-description="${video.description}"
+                         data-video-summary="${video.summary || ''}"
+                         data-video-category="${video.category}"
+                         data-video-year="${video.year || ''}"
+                         data-video-id="">
+                        ${hasThumbnail
+                            ? `<img src="${thumbnailSrc}" alt="${video.title}" style="width: 100%; height: 100%; object-fit: cover;">`
+                            : `<div style="width:100%; height:100%; background:linear-gradient(135deg, #1f1f1f 0%, #3b2b36 100%); display:flex; align-items:center; justify-content:center; font-family:'Roboto', sans-serif; font-size:14px; letter-spacing: 1px; text-transform:uppercase; color:#fff;">Video</div>`
+                        }
+                    </div>
+                `;
+
+                grid.appendChild(videoItem);
+            });
+
+            attachVideoEventListeners();
+        }
+
+        // Local MP4 workflow: no YouTube title fetch needed
+        function extractYouTubeID(urlOrId) {
+            if (!urlOrId) return null;
+            if (/^[A-Za-z0-9_-]{6,}$/.test(urlOrId)) return urlOrId;
+            const m = urlOrId.match(/(?:youtube\.com\/(?:.*v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+            return m ? m[1] : null;
+        }
+
+        const contactModal = document.getElementById('contactModal');
+        const aboutModal = document.getElementById('aboutModal');
+        const videoModal = document.getElementById('videoModal');
+        const contactLink = document.getElementById('contactLink');
+        const aboutLink = document.getElementById('aboutLink');
+        const homeLink = document.getElementById('homeLink');
+        const modalBackHome = document.getElementById('modalBackHome');
+        const closeBtns = document.querySelectorAll('.close');
+        const videoModalClose = document.querySelector('.video-modal-close');
+        const modalPlayerContainer = document.getElementById('modalPlayerContainer');
+        const VIDEO_MODAL_FADE_DURATION = 280;
+        let lockedPageScrollY = 0;
+
+        // Same smooth scrolling inside the project view (the video window scrolls on its own)
+        const modalLenis = (lenis && videoModal)
+            ? new Lenis({
+                wrapper: videoModal,
+                content: videoModal.querySelector('.video-modal-content') || videoModal,
+                lerp: 0.1,
+                autoRaf: true,
+                syncTouch: false
+            })
+            : null;
+
+        // Trigger quick staged intro animation on first load
+        document.body.classList.add('intro-loading');
+
+        function runIntroAnimation() {
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (prefersReducedMotion) {
+                document.body.classList.remove('intro-loading', 'intro-top-ready', 'intro-videos-ready');
+                return;
+            }
+
+            requestAnimationFrame(() => {
+                document.body.classList.add('intro-top-ready');
+
+                setTimeout(() => {
+                    document.body.classList.add('intro-videos-ready');
+
+                    setTimeout(() => {
+                        document.body.classList.remove('intro-loading');
+                    }, 340);
+                }, 260);
+            });
+        }
+
+        function lockPageScrollForVideoModal() {
+            if (document.body.style.position === 'fixed') return;
+
+
+
+            if (lenis) lenis.stop();
+            lockedPageScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${lockedPageScrollY}px`;
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.width = '100%';
+        }
+
+        function unlockPageScrollForVideoModal() {
+            const wasLocked = document.body.style.position === 'fixed';
+            const restoreY = lockedPageScrollY;
+
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
+
+            if (wasLocked) {
+                window.scrollTo(0, restoreY);
+                if (lenis) lenis.scrollTo(restoreY, { immediate: true, force: true });
+            }
+            if (lenis) lenis.start();
+        }
+
+        function requestFullscreenForElement(element) {
+            if (!element) return;
+
+            const targets = [element];
+            if (element.parentElement) targets.push(element.parentElement);
+            if (modalPlayerContainer) targets.push(modalPlayerContainer);
+
+            for (const target of targets) {
+                const fullscreenFn = target.requestFullscreen
+                    || target.webkitRequestFullscreen
+                    || target.mozRequestFullScreen
+                    || target.msRequestFullscreen
+                    || target.webkitEnterFullscreen;
+
+                if (typeof fullscreenFn === 'function') {
+                    try {
+                        return fullscreenFn.call(target);
+                    } catch (error) {
+                        // retry with next available target
+                    }
+                }
+            }
+        }
+
+        function exitFullscreenForElement() {
+            const exitFn = document.exitFullscreen
+                || document.webkitExitFullscreen
+                || document.mozCancelFullScreen
+                || document.msExitFullscreen
+                || document.webkitCancelFullScreen;
+
+            if (typeof exitFn === 'function') {
+                exitFn.call(document);
+            }
+        }
+
+        function addFullscreenToggle(mediaElement) {
+            const existing = modalPlayerContainer.querySelector('.video-fullscreen-toggle');
+            if (existing) existing.remove();
+
+            const fullscreenBtn = document.createElement('button');
+            fullscreenBtn.type = 'button';
+            fullscreenBtn.className = 'video-fullscreen-toggle';
+            fullscreenBtn.setAttribute('aria-label', 'Open in fullscreen');
+            fullscreenBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M8 16L16 8M10 8h6v6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            `;
+
+            fullscreenBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const activeFullscreen = document.fullscreenElement
+                    || document.webkitFullscreenElement
+                    || document.mozFullScreenElement
+                    || document.msFullscreenElement;
+
+                if (activeFullscreen) {
+                    exitFullscreenForElement();
+                    return;
+                }
+
+                requestFullscreenForElement(mediaElement || modalPlayerContainer);
+            });
+
+            modalPlayerContainer.appendChild(fullscreenBtn);
+        }
+
+        // Grow the clicked thumbnail into the player position, then fade it away
+        const THUMB_FLY_DURATION = 650;
+
+        let modalInfoFade = null;
+
+        function removeThumbFly() {
+            document.querySelectorAll('.thumb-fly').forEach(el => el.remove());
+            if (modalInfoFade) {
+                modalInfoFade.cancel();
+                modalInfoFade = null;
+            }
+        }
+
+        function animateThumbnailToPlayer(thumbImg, fromRect) {
+            removeThumbFly();
+            if (!thumbImg || !fromRect || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            // Final player box (modal is fixed at 0,0 and scrolled to top)
+            const to = {
+                left: modalPlayerContainer.offsetLeft,
+                top: modalPlayerContainer.offsetTop,
+                width: modalPlayerContainer.offsetWidth,
+                height: modalPlayerContainer.offsetHeight
+            };
+            if (!to.width || !to.height) return;
+
+            const fly = document.createElement('img');
+            fly.className = 'thumb-fly';
+            fly.src = thumbImg.currentSrc || thumbImg.src;
+            fly.alt = '';
+            document.body.appendChild(fly);
+
+            const grow = fly.animate([
+                { left: fromRect.left + 'px', top: fromRect.top + 'px', width: fromRect.width + 'px', height: fromRect.height + 'px', borderRadius: '18px' },
+                { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', borderRadius: '0px' }
+            ], { duration: THUMB_FLY_DURATION, easing: 'cubic-bezier(0.65, 0, 0.25, 1)', fill: 'forwards' });
+
+            // Description etc. fades in softly while the video grows
+            const modalInfo = videoModal.querySelector('.video-modal-info');
+            if (modalInfo) {
+                modalInfoFade = modalInfo.animate([{ opacity: 0 }, { opacity: 1 }], {
+                    duration: THUMB_FLY_DURATION,
+                    delay: 0,
+                    easing: 'ease-out',
+                    fill: 'backwards'
+                });
+            }
+
+            grow.onfinish = () => {
+                const fade = fly.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, easing: 'ease', fill: 'forwards' });
+                fade.onfinish = () => fly.remove();
+            };
+        }
+
+        function attachVideoEventListeners() {
+            const videoTriggers = document.querySelectorAll('.video-trigger');
+            videoTriggers.forEach(trigger => {
+                                                                                                         trigger.addEventListener('click', () => {
+                    const videoSrc = trigger.getAttribute('data-video-src');
+                    const videoTitle = trigger.getAttribute('data-video-title');
+                    const videoDescription = trigger.getAttribute('data-video-description');
+                    const videoSummary = trigger.getAttribute('data-video-summary') || '';
+                    const videoCategory = trigger.getAttribute('data-video-category');
+                    const videoYear = trigger.getAttribute('data-video-year');
+                    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.matchMedia('(pointer: coarse)').matches;
+
+                    modalPlayerContainer.innerHTML = '';
+
+                    const ytId = extractYouTubeID(videoSrc);
+                    if (ytId) {
+                        const originParam = (typeof location !== 'undefined' && location.origin) ? `&origin=${encodeURIComponent(location.origin)}` : '';
+                        const mobileAutoplayParams = isMobileDevice ? '&playsinline=1' : '';
+                        const embedUrl = `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&autoplay=1&controls=1&showinfo=0&iv_load_policy=3&fs=0${mobileAutoplayParams}${originParam}`;
+                        const iframe = document.createElement('iframe');
+                        iframe.setAttribute('src', embedUrl);
+                        iframe.setAttribute('frameborder', '0');
+                        iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
+                        iframe.setAttribute('allowfullscreen', '');
+                        iframe.style.width = '100%';
+                        iframe.style.height = '100%';
+                        iframe.style.minHeight = '360px';
+                        modalPlayerContainer.appendChild(iframe);
+                        addFullscreenToggle(iframe);
+                    } else {
+                        const vid = document.createElement('video');
+                        vid.controls = false;
+                        vid.setAttribute('playsinline', '');
+                        vid.setAttribute('webkit-playsinline', 'true');
+                        vid.setAttribute('preload', 'metadata');
+                        vid.style.width = '100%';
+                        vid.style.height = '100%';
+                        vid.style.objectFit = 'contain';
+                        vid.style.background = '#000';
+                        vid.style.display = 'block';
+                        vid.style.maxWidth = '100%';
+                        vid.style.maxHeight = '100%';
+                        vid.style.filter = 'none';
+                        vid.style.opacity = '1';
+                        vid.style.cursor = 'pointer';
+
+                        const sourceUrl = videoSrc || '';
+                        const sourceType = sourceUrl.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4';
+                        vid.src = sourceUrl;
+                        vid.type = sourceType;
+                        vid.load();
+
+                        const customControls = document.createElement('div');
+                        customControls.className = 'video-custom-controls';
+
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.type = 'button';
+                        toggleBtn.className = 'video-custom-toggle';
+                        toggleBtn.setAttribute('aria-label', 'Play or pause video');
+
+                        const scrubberWrap = document.createElement('div');
+                        scrubberWrap.className = 'video-custom-scrubber-wrap';
+
+                        const scrubber = document.createElement('input');
+                        scrubber.type = 'range';
+                        scrubber.min = '0';
+                        scrubber.max = '100';
+                        scrubber.value = '0';
+                        scrubber.step = '0.1';
+                        scrubber.className = 'video-custom-scrubber';
+                        scrubber.setAttribute('aria-label', 'Seek video');
+
+                        let controlsHideTimer = null;
+
+                        const fullscreenBtn = modalPlayerContainer.querySelector('.video-fullscreen-toggle');
+
+                        const syncControlsVisibility = () => {
+                            const isMobile = window.innerWidth <= 768;
+                            if (!isMobile) {
+                                customControls.classList.remove('video-controls-hidden');
+                                if (fullscreenBtn) fullscreenBtn.classList.remove('video-controls-hidden');
+                                return;
+                            }
+
+                            const shouldHide = customControls.classList.contains('video-controls-hidden');
+                            if (!shouldHide) {
+                                if (fullscreenBtn) fullscreenBtn.classList.remove('video-controls-hidden');
+                            }
+                        };
+
+                        const showControls = () => {
+                            customControls.classList.remove('video-controls-hidden');
+                            if (fullscreenBtn) fullscreenBtn.classList.remove('video-controls-hidden');
+                            if (controlsHideTimer) clearTimeout(controlsHideTimer);
+                            if (window.innerWidth <= 768) {
+                                controlsHideTimer = setTimeout(() => {
+                                    customControls.classList.add('video-controls-hidden');
+                                    if (fullscreenBtn) fullscreenBtn.classList.add('video-controls-hidden');
+                                }, 2000);
+                            }
+                        };
+
+                        const hideControls = () => {
+                            if (window.innerWidth <= 768) {
+                                customControls.classList.add('video-controls-hidden');
+                                if (fullscreenBtn) fullscreenBtn.classList.add('video-controls-hidden');
+                            }
+                        };
+
+                        const updateToggleLabel = () => {
+                            const isPaused = vid.paused;
+                            toggleBtn.innerHTML = isPaused
+                                ? '<span>[PLAY </span><span class="video-custom-toggle-icon">&#9654;&#xFE0E;</span><span>]</span>'
+                                : '<span>[PAUSE </span><span class="video-custom-toggle-icon">❚❚</span><span>]</span>';
+                        };
+
+                        const togglePlayback = (event) => {
+                            if (event) event.stopPropagation();
+                            if (vid.paused) {
+                                vid.play().catch(() => {});
+                            } else {
+                                vid.pause();
+                            }
+                            updateToggleLabel();
+                            showControls();
+                        };
+
+                        toggleBtn.addEventListener('click', togglePlayback);
+                        vid.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                            if (!vid.paused) {
+                                vid.pause();
+                            } else {
+                                vid.play().catch(() => {});
+                            }
+                            updateToggleLabel();
+                            showControls();
+                        });
+
+                        const updateScrubber = () => {
+                            if (!Number.isFinite(vid.duration) || vid.duration <= 0) return;
+                            const progress = (vid.currentTime / vid.duration) * 100;
+                            scrubber.value = String(progress);
+                        };
+
+                        vid.addEventListener('timeupdate', updateScrubber);
+                        vid.addEventListener('loadedmetadata', updateScrubber);
+                        vid.addEventListener('play', updateToggleLabel);
+                        vid.addEventListener('pause', updateToggleLabel);
+
+                        scrubber.addEventListener('input', () => {
+                            if (!Number.isFinite(vid.duration) || vid.duration <= 0) return;
+                            const targetTime = (Number(scrubber.value) / 100) * vid.duration;
+                            vid.currentTime = targetTime;
+                            showControls();
+                        });
+
+                        const muteBtn = document.createElement('button');
+                        muteBtn.type = 'button';
+                        muteBtn.className = 'video-custom-toggle video-custom-mute';
+                        muteBtn.setAttribute('aria-label', 'Mute or unmute video');
+
+                        const updateMuteLabel = () => {
+                            muteBtn.textContent = vid.muted ? '[SOUND ON]' : '[SOUND OFF]';
+                        };
+
+                        muteBtn.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                            vid.muted = !vid.muted;
+                            updateMuteLabel();
+                            showControls();
+                        });
+                        vid.addEventListener('volumechange', updateMuteLabel);
+                        updateMuteLabel();
+
+                        scrubberWrap.appendChild(scrubber);
+                        customControls.appendChild(toggleBtn);
+                        customControls.appendChild(scrubberWrap);
+                        customControls.appendChild(muteBtn);
+                        modalPlayerContainer.appendChild(vid);
+                        modalPlayerContainer.appendChild(customControls);
+                        addFullscreenToggle(vid);
+                        updateToggleLabel();
+                        showControls();
+                        vid.play().catch(() => {});
+                    }
+
+                    const titleEl = document.getElementById('modalVideoTitle');
+                    const summaryEl = document.getElementById('modalVideoSummary');
+                    const descriptionEl = document.getElementById('modalVideoDescription');
+                    titleEl.textContent = videoTitle;
+
+                    const summaryText = (videoSummary || '').trim() || 'TEXT HIER';
+                    summaryEl.textContent = summaryText;
+
+                    const creditLines = (videoDescription || '')
+                        .split(/\n+/)
+                        .map(line => line.trim())
+                        .filter(Boolean);
+
+                    descriptionEl.innerHTML = '';
+                    creditLines.forEach((line) => {
+                        const match = line.match(/^([^:]+):\s*(.+)$/);
+                        if (match) {
+                            const rawLabel = match[1].trim();
+                            const label = rawLabel.toUpperCase() === 'DOP'
+                                ? 'Director of photography'
+                                : (rawLabel.length <= 3 && rawLabel === rawLabel.toUpperCase())
+                                    ? rawLabel
+                                    : rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
+                            const value = match[2].trim();
+                            const item = document.createElement('div');
+                            item.className = 'credit-item';
+                            item.innerHTML = `
+                                <div class="credit-label">${label}</div>
+                                <div class="credit-name">${value}</div>
+                            `;
+                            descriptionEl.appendChild(item);
+                            return;
+                        }
+
+                        const item = document.createElement('div');
+                        item.className = 'credit-item';
+                        item.innerHTML = `
+                            <div class="credit-name">${line}</div>
+                        `;
+                        descriptionEl.appendChild(item);
+                    });
+
+                    const formattedCategory = (videoCategory || '')
+                        .split(',')
+                        .map(part => part.trim())
+                        .filter(Boolean)
+                        .join(', ');
+                    const categoryLabel = formattedCategory || 'Other';
+                    const yearLabel = (videoYear || '').trim() || '----';
+                    document.getElementById('modalVideoCategory').textContent = `[${categoryLabel}]`;
+                    document.getElementById('modalVideoYear').textContent = `[${yearLabel}]`;
+
+                    const thumbRect = trigger.getBoundingClientRect();
+                    const thumbImg = trigger.querySelector('img');
+
+                    // Add a history entry so the browser/phone back button closes the video
+                    // instead of leaving the site. The URL stays the same.
+                    if (!(history.state && history.state.videoModal)) {
+                        history.pushState({ videoModal: true }, '');
+                    }
+
+                    videoModal.style.display = 'block';
+                    videoModal.scrollTop = 0;
+                    if (modalLenis) {
+                        modalLenis.resize();
+                        modalLenis.scrollTo(0, { immediate: true, force: true });
+                    }
+                    lockPageScrollForVideoModal();
+                    animateThumbnailToPlayer(thumbImg, thumbRect);
+                    document.body.classList.add('video-modal-open', 'video-open');
+                    requestAnimationFrame(() => {
+                        videoModal.classList.add('is-open');
+                        videoModal.classList.remove('is-closing');
+                    });
+                });
+            });
+        }
+
+        // Close modals on click
+        closeBtns.forEach(btn => {
+                       btn.addEventListener('click', () => {
+                const isVideoModalClose = btn.closest('#videoModal') || btn.classList.contains('video-modal-close');
+                if (isVideoModalClose) {
+                    closeVideoModal();
+                    return;
+                }
+
+                contactModal.style.display = 'none';
+                aboutModal.style.display = 'none';
+                videoModal.style.display = 'none';
+                unlockPageScrollForVideoModal();
+            });
+        });
+
+        // Close video modal when clicking outside of the content
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                closeVideoModal();
+            }
+        });
+
+        function stopModalMedia() {
+            const iframe = modalPlayerContainer.querySelector('iframe');
+           
+            if (iframe) {
+                iframe.src = '';
+                iframe.removeAttribute('src');
+            }
+
+            const video = modalPlayerContainer.querySelector('video');
+            if (video) {
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+            }
+
+            modalPlayerContainer.innerHTML = '';
+               }
+
+        // Back button pressed while a video is open: close it like the close button does.
+        window.addEventListener('popstate', () => {
+            if (videoModal && document.body.classList.contains('video-modal-open')) {
+                closeVideoModal({ fromHistory: true });
+            }
+        });
+
+        // A reload while a video was open leaves a stale history state behind; clear it.
+        if (history.state && history.state.videoModal) {
+            history.replaceState(null, '');
+        }
+
+        function closeVideoModal({ animate = false, onComplete = null, fromHistory = false } = {}) {
+            if (!videoModal) return;
+
+            // Closed via the X / outside click / menu: remove the extra history entry too,
+            // so pressing back afterwards behaves normally.
+            if (!fromHistory && history.state && history.state.videoModal) {
+                history.back();
+            }
+
+            removeThumbFly();
+            document.body.classList.remove('video-modal-open', 'video-open');
+            videoModal.classList.remove('is-open');
+
+            if (animate) {
+                videoModal.classList.add('is-closing');
+                setTimeout(() => {
+                    videoModal.style.display = 'none';
+                    videoModal.classList.remove('is-closing');
+                    stopModalMedia();
+                    unlockPageScrollForVideoModal();
+                    if (typeof onComplete === 'function') onComplete();
+                }, VIDEO_MODAL_FADE_DURATION);
+                return;
+            }
+
+            videoModal.classList.remove('is-closing');
+            videoModal.style.display = 'none';
+            stopModalMedia();
+            unlockPageScrollForVideoModal();
+            if (typeof onComplete === 'function') onComplete();
+        }
+
+        // The contact menu lives on <body> (not inside the header) so the header's
+        // mix-blend-mode in the project view doesn't recolor it.
+        function positionContactMenu() {
+            const menu = document.getElementById('mobileContactMenu');
+            if (!menu || !contactLink) return;
+            const rect = contactLink.getBoundingClientRect();
+            const menuWidth = menu.offsetWidth || 235;
+            const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+            menu.style.top = rect.bottom + 'px';
+            menu.style.left = left + 'px';
+        }
+
+        function toggleContactDropdown() {
+            const menu = document.getElementById('mobileContactMenu');
+            if (!menu) return;
+
+            const isOpen = menu.classList.contains('open');
+            menu.classList.toggle('open', !isOpen);
+            if (!isOpen) positionContactMenu();
+            contactLink.setAttribute('aria-expanded', String(!isOpen));
+            menu.setAttribute('aria-hidden', String(isOpen));
+        }
+
+        function closeContactDropdown() {
+            const menu = document.getElementById('mobileContactMenu');
+            if (!menu) return;
+            menu.classList.remove('open');
+            contactLink.setAttribute('aria-expanded', 'false');
+            menu.setAttribute('aria-hidden', 'true');
+        }
+
+        function smoothScrollToY(targetY, duration = 650, easing = null) {
+            const startY = window.pageYOffset || document.documentElement.scrollTop;
+            // Never aim past the bottom of the page, so the ease-out isn't cut off
+            const maxY = document.documentElement.scrollHeight - window.innerHeight;
+            const distance = Math.min(targetY, maxY) - startY;
+            const startTime = performance.now();
+
+            function easeInOutSineSoftTail(t) {
+                const base = -(Math.cos(Math.PI * t) - 1) / 2;
+                if (t > 0.82) {
+                    return 1 - (1 - base) * (1 - (t - 0.82) / 0.18);
+                }
+                return base;
+            }
+
+            if (lenis) {
+                lenis.scrollTo(Math.min(targetY, maxY), {
+                    duration: duration / 1000,
+                    easing: easing || easeInOutSineSoftTail,
+                    force: true
+                });
+                return;
+            }
+
+            function step(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = (easing || easeInOutSineSoftTail)(progress);
+                window.scrollTo(0, startY + distance * eased);
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        // Same soft easing as the page scroll, but for a scrollable element (the project view)
+        function smoothScrollElementTo(element, targetTop, duration = 1800) {
+            const startTop = element.scrollTop;
+            const distance = targetTop - startTop;
+            const startTime = performance.now();
+            const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
+
+            if (modalLenis && element === videoModal) {
+                modalLenis.scrollTo(targetTop, { duration: duration / 1000, easing: easeInOutSine, force: true });
+                return;
+            }
+
+            function step(currentTime) {
+                const progress = Math.min((currentTime - startTime) / duration, 1);
+                element.scrollTop = startTop + distance * easeInOutSine(progress);
+                if (progress < 1) requestAnimationFrame(step);
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        function goToMainScreen(duration = 1600) {
+            const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
+            renderVideos();
+            closeContactDropdown();
+            closeMobileFilterMenu();
+
+            if (videoModal && videoModal.style.display === 'block') {
+                closeVideoModal({
+                    animate: true,
+                    onComplete: () => smoothScrollToY(0, duration, easeInOutSine)
+                });
+                return;
+            }
+            smoothScrollToY(0, duration, easeInOutSine);
+        }
+
+        function closeMobileFilterMenu() {
+            const menu = document.getElementById('mobileFilterMenu');
+            const toggle = document.querySelector('.mobile-filter-toggle');
+            if (!menu) return;
+            menu.classList.remove('open');
+            menu.setAttribute('aria-hidden', 'true');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+            document.body.classList.remove('filter-menu-open');
+        }
+
+        function openMobileFilterMenu() {
+            const menu = document.getElementById('mobileFilterMenu');
+            const toggle = document.querySelector('.mobile-filter-toggle');
+            if (!menu) return;
+            const isOpen = menu.classList.contains('open');
+            menu.classList.toggle('open', !isOpen);
+            menu.setAttribute('aria-hidden', String(isOpen));
+            if (toggle) toggle.setAttribute('aria-expanded', String(!isOpen));
+            document.body.classList.toggle('filter-menu-open', !isOpen);
+        }
+
+        const FILTER_FADE_DURATION = 450;
+        let filterRun = 0;
+
+        function applyFilter(filter) {
+            const run = ++filterRun;
+            const items = [...document.querySelectorAll('.video-item')];
+            const matches = (item) => filter === 'all' || (item.getAttribute('data-category') || '').includes(filter);
+            const isShown = (item) => item.style.display !== 'none';
+
+            // 1. Fade out the projects that don't match
+            items.forEach(item => {
+                if (!matches(item) && isShown(item)) item.classList.add('filter-fade-hidden');
+            });
+
+            const hasFadeOut = items.some(item => !matches(item) && isShown(item));
+
+            setTimeout(() => {
+                if (run !== filterRun) return;
+
+                // 2. Remember where the staying projects are
+                const before = new Map();
+                items.forEach(item => {
+                    if (matches(item) && isShown(item)) before.set(item, item.getBoundingClientRect());
+                });
+
+                // 3. Update the layout
+                items.forEach(item => {
+                    if (matches(item)) {
+                        if (!isShown(item)) {
+                            item.classList.add('filter-fade-hidden');
+                            item.style.display = 'flex';
+                        }
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // 4. Glide staying projects to their new spot, fade in new ones
+                items.forEach(item => {
+                    if (!matches(item)) return;
+                    const old = before.get(item);
+                    if (old) {
+                        const now = item.getBoundingClientRect();
+                        const dx = old.left - now.left;
+                        const dy = old.top - now.top;
+                        if (dx || dy) {
+                            item.animate([
+                                { transform: `translate(${dx}px, ${dy}px)` },
+                                { transform: 'translate(0, 0)' }
+                            ], { duration: 600, easing: 'cubic-bezier(0.65, 0, 0.25, 1)' });
+                        }
+                    }
+                });
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (run !== filterRun) return;
+                        items.forEach(item => {
+                            if (matches(item)) item.classList.remove('filter-fade-hidden');
+                        });
+                    });
+                });
+            }, hasFadeOut ? FILTER_FADE_DURATION : 0);
+        }
+
+        const filterLinks = document.querySelectorAll('.filter-link');
+        const mobileFilterToggle = document.querySelector('.mobile-filter-toggle');
+        const mobileFilterMenu = document.getElementById('mobileFilterMenu');
+        const mobileContactMenu = document.getElementById('mobileContactMenu');
+        const mobileContactContainer = contactLink ? contactLink.closest('.mobile-contact-container') : null;
+
+        if (mobileContactContainer && mobileContactMenu) {
+            document.body.appendChild(mobileContactMenu);
+            let contactCloseTimer = null;
+            const canHover = window.matchMedia('(hover: hover)').matches;
+
+            const openContactHover = () => {
+                if (!canHover) return;
+                clearTimeout(contactCloseTimer);
+                contactLink.setAttribute('aria-expanded', 'true');
+                mobileContactMenu.classList.add('open');
+                mobileContactMenu.setAttribute('aria-hidden', 'false');
+                positionContactMenu();
+            };
+
+            const closeContactHover = () => {
+                if (!canHover) return;
+                clearTimeout(contactCloseTimer);
+                contactCloseTimer = setTimeout(() => {
+                    mobileContactMenu.classList.remove('open');
+                    contactLink.setAttribute('aria-expanded', 'false');
+                    mobileContactMenu.setAttribute('aria-hidden', 'true');
+                }, 120);
+            };
+
+            mobileContactContainer.addEventListener('mouseenter', openContactHover);
+            mobileContactContainer.addEventListener('mouseleave', closeContactHover);
+            mobileContactMenu.addEventListener('mouseenter', openContactHover);
+            mobileContactMenu.addEventListener('mouseleave', closeContactHover);
+
+            const repositionIfOpen = () => {
+                if (mobileContactMenu.classList.contains('open')) positionContactMenu();
+            };
+            window.addEventListener('scroll', repositionIfOpen, { passive: true });
+            window.addEventListener('resize', repositionIfOpen);
+        }
+
+        filterLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                filterLinks.forEach(item => item.classList.remove('active'));
+                link.classList.add('active');
+
+                applyFilter(link.getAttribute('data-filter'));
+
+                closeMobileFilterMenu();
+            });
+        });
+
+        if (mobileFilterToggle && mobileFilterMenu) {
+            mobileFilterToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openMobileFilterMenu();
+            });
+        }
+
+        const scrollHint = document.querySelector('.scroll-hint');
+        if (scrollHint) {
+            scrollHint.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const currentY = window.pageYOffset || document.documentElement.scrollTop;
+                const targetY = currentY + Math.min(window.innerHeight * 0.64, 500);
+
+                if (videoModal && videoModal.style.display === 'block') {
+                    const modalCurrentTop = videoModal.scrollTop || 0;
+                    const modalTargetTop = Math.min(modalCurrentTop + 220, videoModal.scrollHeight - videoModal.clientHeight);
+                    smoothScrollElementTo(videoModal, modalTargetTop, 1800);
+                    return;
+                }
+
+                // Slow, fully smooth ease in and out
+                smoothScrollToY(targetY, 2200, (t) => -(Math.cos(Math.PI * t) - 1) / 2);
+            });
+        }
+
+        if (homeLink) {
+            homeLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToMainScreen();
+            });
+        }
+
+        const backToTop = document.getElementById('backToTop');
+        if (backToTop) {
+            backToTop.addEventListener('click', (e) => {
+                e.preventDefault();
+                smoothScrollToY(0, 1600, (t) => -(Math.cos(Math.PI * t) - 1) / 2);
+            });
+        }
+
+        if (modalBackHome) {
+            modalBackHome.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToMainScreen();
+            });
+        }
+
+        if (aboutLink) {
+            aboutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const aboutSection = document.getElementById('about');
+                if (!aboutSection) return;
+
+                const rect = aboutSection.getBoundingClientRect();
+                const currentY = window.pageYOffset || document.documentElement.scrollTop;
+                const targetY = rect.top + currentY;
+
+                const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
+
+                if (videoModal && videoModal.style.display === 'block') {
+                    closeVideoModal({
+                        animate: true,
+                        onComplete: () => smoothScrollToY(targetY, 2200, easeInOutSine)
+                    });
+                    return;
+                }
+
+                smoothScrollToY(targetY, 2200, easeInOutSine);
+            });
+        }
+
+        if (contactLink) {
+            contactLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const menu = document.getElementById('mobileContactMenu');
+                const hoverDevice = window.matchMedia('(hover: hover)').matches;
+                // On desktop the hover already opened the menu; a click must not close it again
+                if (!(hoverDevice && menu && menu.classList.contains('open'))) {
+                    toggleContactDropdown();
+                }
+                closeMobileFilterMenu();
+            });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (mobileFilterMenu && mobileFilterToggle) {
+                const clickedInsideMenu = mobileFilterMenu.contains(event.target);
+                const clickedToggle = mobileFilterToggle.contains(event.target);
+                if (!clickedInsideMenu && !clickedToggle) {
+                    closeMobileFilterMenu();
+                }
+            }
+
+            if (mobileContactMenu && contactLink) {
+                const clickedInsideContactMenu = mobileContactMenu.contains(event.target);
+                const clickedContactToggle = contactLink.contains(event.target);
+                if (!clickedInsideContactMenu && !clickedContactToggle) {
+                    closeContactDropdown();
+                }
+            }
+        });
+
+        // Header changes color once the main page is scrolled
+        const updateHeaderScrolled = () => {
+            const header = document.querySelector('header');
+            const firstVideo = [...document.querySelectorAll('.video-item')]
+                .find(item => item.style.display !== 'none');
+            const thumb = firstVideo && firstVideo.querySelector('.video-wrapper');
+            const reached = thumb && header
+                ? thumb.getBoundingClientRect().top <= header.getBoundingClientRect().bottom
+                : window.scrollY > 4;
+            setHeaderScrolled(Boolean(reached));
+        };
+
+        function setHeaderScrolled(scrolled) {
+            document.body.classList.toggle('header-scrolled', scrolled);
+        }
+
+        // Blended copy of the header, used for the crossfade (see .header-blend)
+        (function createHeaderBlendLayer() {
+            const header = document.querySelector('header');
+            if (!header) return;
+            const blend = header.cloneNode(true);
+            blend.classList.add('header-blend');
+            blend.setAttribute('aria-hidden', 'true');
+            blend.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+            blend.querySelectorAll('a, button').forEach(el => el.setAttribute('tabindex', '-1'));
+            header.after(blend);
+
+            // Mirror hover underline of [About]/[Contact] onto the copy
+            const realLinks = header.querySelectorAll('.nav-links > a, .nav-links .mobile-contact-container > a');
+            const copyLinks = blend.querySelectorAll('.nav-links > a, .nav-links .mobile-contact-container > a');
+            realLinks.forEach((link, i) => {
+                const copy = copyLinks[i];
+                if (!copy) return;
+                link.addEventListener('mouseenter', () => copy.classList.add('is-hover'));
+                link.addEventListener('mouseleave', () => copy.classList.remove('is-hover'));
+            });
+        })();
+
+        window.addEventListener('scroll', updateHeaderScrolled, { passive: true });
+        updateHeaderScrolled();
+
+        // WORK block sticks exactly where it starts, so the videos slide over it
+        function updateWorkHeadingTop() {
+            const heading = document.querySelector('.work-heading');
+            if (!heading || document.body.style.position === 'fixed') return;
+            heading.style.position = 'static';
+            const top = heading.offsetTop; // layout position, ignores transforms
+            heading.style.position = '';
+            document.documentElement.style.setProperty('--work-heading-top', top + 'px');
+        }
+        // WORK + filters shrink slightly and fade a bit as the videos slide over them
+        let workDepthFrame = null;
+        function updateWorkDepth() {
+            workDepthFrame = null;
+            const root = document.documentElement;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                root.style.removeProperty('--work-depth-scale');
+                root.style.removeProperty('--work-depth-opacity');
+                return;
+            }
+            const heading = document.querySelector('.work-heading');
+            const grid = document.getElementById('videosGrid');
+            if (!heading || !grid || document.body.style.position === 'fixed') return;
+
+            const headingTop = parseFloat(getComputedStyle(root).getPropertyValue('--work-heading-top')) || 0;
+            const range = Math.max(1, grid.offsetTop - headingTop);
+            const progress = Math.min(Math.max(window.scrollY / range, 0), 1);
+
+            root.style.setProperty('--work-depth-scale', (1 - 0.12 * progress).toFixed(4));
+            root.style.setProperty('--work-depth-opacity', (1 - 0.45 * progress).toFixed(4));
+        }
+        window.addEventListener('scroll', () => {
+            if (!workDepthFrame) workDepthFrame = requestAnimationFrame(updateWorkDepth);
+        }, { passive: true });
+        window.addEventListener('resize', updateWorkDepth);
+
+        window.addEventListener('resize', updateWorkHeadingTop);
+        window.addEventListener('scroll', () => {
+            if (document.body.classList.contains('filter-menu-open') && window.scrollY > 40) closeMobileFilterMenu();
+        }, { passive: true });
+        window.addEventListener('load', updateWorkHeadingTop);
+
+        // Initial rendering of videos
+        renderVideos();
+        updateWorkHeadingTop();
+        updateWorkDepth();
+
+        // Run intro animation on first load
+        runIntroAnimation();
+    </script>
+</body>
+</html>
